@@ -14,3 +14,6 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+// 所有部门
+Route::get('test', 'CctvController@test')->name('groups.index');

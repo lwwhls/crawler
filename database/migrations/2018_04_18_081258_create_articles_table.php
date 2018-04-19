@@ -12,7 +12,7 @@ class CreateArticlesTable extends Migration
      */
     public function up()
     {
-        Schema::create('projects', function (Blueprint $table) {
+        Schema::create('articles', function (Blueprint $table) {
             $table->engine = 'InnoDB';
 
             // 自增id
@@ -33,6 +33,9 @@ class CreateArticlesTable extends Migration
             //文章url md5 加密
             $table->string('md5_url',32)->default('');
 
+            //文章标签
+            $table->string('tag',200)->default('');
+
             //文章摘要图片
             $table->string('img',200)->default('');
 
@@ -43,9 +46,9 @@ class CreateArticlesTable extends Migration
             $table->string('source',200)->default('');
 
             //文章发布时间
-            $table->timestamp('publish_time');
+            $table->timestamp('publish_time')->nullable();
 
-            $table->timestamp('time')->default(\DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamps();
         });
     }
 
