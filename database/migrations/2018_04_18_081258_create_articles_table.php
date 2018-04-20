@@ -37,13 +37,16 @@ class CreateArticlesTable extends Migration
             $table->string('tag',200)->default('');
 
             //文章摘要图片
-            $table->string('img',200)->default('');
-
-            // 正文内容
-            $table->text('content')->default('');
+            $table->string('img',500)->default('');
 
             //文章来源
             $table->string('source',200)->default('');
+
+            //文章来源栏目
+            $table->string('channel',200)->default('');
+
+            //文章抓取策略 strategy
+            $table->string('strategy',100)->default('');
 
             //文章发布时间
             $table->timestamp('publish_time')->nullable();

@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Articles extends Model
+class ArticleContent extends Model
 {
     //与模型关联的数据表
-    protected $table = 'articles';
+    protected $table = 'article_contents';
 
     //定义数据表的主键
     public $primaryKey = 'id';
@@ -18,33 +18,29 @@ class Articles extends Model
     //可以/不允许 批量赋值的字段
     protected $guarded = [];
 
-    /**
-     * 数据列表
-     *
-     * @param array $data
-     * @return mixed
-     */
-    public function allData($columns = array('*'))
-    {
-        return $this->get($columns)->toArray();
-    }
-
     /*
-     * 单条创建创建文章
+     * 单条创建创建文章内容
      */
     public function createData($data)
     {
         $result = $this->create($data);
         return $result->id ? $result->id : 0;
     }
+
     /*
-     * 判断文章是否存在
-     *
-     *  */
-    public function findArticleByUrl($md5_url)
+    * 修改创建文章内容
+    */
+    public function updateData($data,$id)
     {
-        $result = $this->where('md5_url',$md5_url)->get()->toArray();
-        return empty($result) ? false : true;
+        return $this->where('id',$id)->update($data);
     }
 
+    /*
+     * 获取列表数据
+     * */
+    public function getAll($conditions)
+    {
+        $result = $this->where($conditions)->get()->toArray();
+        return $result;
+    }
 }
