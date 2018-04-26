@@ -43,26 +43,55 @@ class CrawlerContent extends Command
     public function handle()
     {
         $content_list = $this->getContentList();
-        if($content_list){
-            foreach($content_list as $key=>$value){
-                //todo:test
-                $value['url'] = 'http://tech.qq.com/a/20180420/007644.htm';
+        if ($content_list) {
+            foreach ($content_list as $key => $value) {
+                /* if($value['id'] == 448){
+                      $html = @file_get_contents($value['url']);
+                      if (!$html) {
+                          echo '读取内容出错，抓取地址为:' . $value['url'];
+                          continue;
+                      }
+                      $obj = $this->getSourceObj($value['strategy']);
+                      $data = $obj->handelContent($html);
+                      //var_dump($data);exit;
+                      if ($data) {
+                          $update_data = array(
+                              'contents' => $data,
+                              'status' => 1,
+                          );
+                          $this->updateArticleContent($update_data, $value['id']);
+                      } else {
+                          echo '暂未抓取到数据';
+                      }
+                      exit;
+                  }*/
                 $html = @file_get_contents($value['url']);
-                if(!$html){
-                    echo '读取内容出错，抓取地址为:'.$value['url'];
+                if (!$html) {
+                    echo '读取内容出错，抓取地址为:' . $value['url'] . "\n";
                     continue;
                 }
                 $obj = $this->getSourceObj($value['strategy']);
-
                 $data = $obj->handelContent($html);
-                print_r($data);exit;
+                //var_dump($data);exit;
+                if ($data) {
+                    $update_data = array(
+                        'contents' => $data,
+                        'status' => 1,
+                        'crawler_times' => $value['crawler_times'] + 1
+                    );
+                    $this->updateArticleContent($update_data, $value['id']);
+                } else {
+                    $update_data = array(
+                        'crawler_times' => $value['crawler_times'] + 1
+                    );
+                    $this->updateArticleContent($update_data, $value['id']);
+                    echo 'no data' . "\n";
+                }
 
-                //插入数据库
-                $this->insertArticle($data);
             }
 
-        }else{
-            echo "没有需要抓取的数据"."\n";
+        } else {
+            echo "no data" . "\n";
         }
     }
 
@@ -74,55 +103,50 @@ class CrawlerContent extends Command
      * */
     public function getSourceObj($strategy)
     {
-        if(!$strategy){
-            echo "参数不合法"."\n";
+        if (!$strategy) {
+            echo "参数不合法" . "\n";
             exit;
         }
-        $arr = explode('.',$strategy);
+        $arr = explode('.', $strategy);
         $dir_name = ucfirst($arr[0]);
-        $obj_name = ucfirst($arr[1]).'Crawler';
+        $obj_name = ucfirst($arr[1]) . 'Crawler';
 
-        $path = app_path()."/Libraries/".$dir_name;
-        if(!is_dir($path)){
-            echo "文件路径不存在"."\n";
+        $path = app_path() . "/Libraries/" . $dir_name;
+        if (!is_dir($path)) {
+            echo "文件路径不存在" . "\n";
             exit;
         }
 
-        $obj = '\App\Libraries\\'.$dir_name.'\\'.$obj_name;
-        $obj = new $obj();
+        $obj = '\App\Libraries\\' . $dir_name . '\\' . $obj_name;
+        $obj = new $obj($arr = ['strategy' => $strategy]);
         return $obj;
     }
 
     /*
-     * 插入数据库
+     *更新文章正文内容
+     *
      * */
-    public function insertArticle($data)
+    public function updateArticleContent($data, $id)
     {
-        if(!is_array($data) || count($data) < 0){
-            echo '暂时未读取到数据！';
-            exit;
+        //查找数据
+        $content = $this->articleContent->where('id', $id)->first()->toArray();
+        if ($content && $content['status'] == 0) {
+            echo 'id:' . $id . " update content success" . "\n";
+            $this->articleContent->updateData($data, $id);
+        } else {
+            echo '参数有问题，对应id为:' . $id . "\n";;
         }
-        //处理数据 入库
-        foreach ($data as $key => $value) {
-            //检查是否重复入库
-            $flag = $this->articles->findArticleByUrl($value['md5_url']);
-            if ($flag) {
-                //已入库 跳过
-                continue;
-            }
-            echo "number {$key} is inserting"."\n";
 
-            $this->articles->createData($value);exit;
-        }
     }
+
     /*
-     *获取未抓取内容的url列表
+     *获取未抓取内容的列表
      *
      * */
     public function getContentList()
     {
-        $conditions = array('status'=>0);
-        $data = $this->articleContent->getAll($conditions);
+        $where = array('status' => 0);
+        $data = $this->articleContent->getAll($where);
         return $data;
     }
 

@@ -7,14 +7,11 @@ use App\Libraries\CrawlerInterface;
 class PeopleCrawler implements CrawlerInterface
 {
     public $rulers;
-    public $config =array(
-        'source' => '央视网',
-        'channel' => '人物',
-        'strategy'=>'Cctv.people'
-    );
+    public $config;
 
-    public function __construct()
+    public function __construct($config)
     {
+        $this->config = $config;
         $this->rulers = $this->listRules();
     }
 
@@ -47,9 +44,17 @@ class PeopleCrawler implements CrawlerInterface
      * */
     public function handelContent($html)
     {
-        $conten_rule =array();
-        $data = QueryList::Query($html, $conten_rule,'.Cnt-Main-Article-QQ')->data;
-        return $data;
+        $content_rule =array(
+            'content'=>array('.cnt_bd','html','-h1 -h2 -.function -#embed_playerid -script'),
+        );
+        $data = QueryList::Query($html, $content_rule)->getData(function($item){
+            return $item['content'];
+        });
+        $return_data = '';
+        if($data){
+            $return_data = implode(' ',array_values($data));
+        }
+        return $return_data;
     }
 
     /*

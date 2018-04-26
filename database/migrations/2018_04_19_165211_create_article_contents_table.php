@@ -29,7 +29,10 @@ class CreateArticleContentsTable extends Migration
             $table->string('strategy',100)->default('');
 
             //文章状态 {0 未抓取 1 已抓取}
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(0);
+
+            //文章抓取次数
+            $table->tinyInteger('crawler_times')->default(0);
 
             $table->timestamps();
         });

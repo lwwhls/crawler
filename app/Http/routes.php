@@ -17,3 +17,9 @@ Route::get('/', function () {
 
 // 所有部门
 Route::get('test', 'CctvController@test')->name('groups.index');
+
+Route::group(['prefix'=>'api','namespace'=>'Api'],function(){
+    Route::get('article/index', 'ApiArticleController@index')->name('api.article.index');
+});
+
+

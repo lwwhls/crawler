@@ -56,22 +56,23 @@ class CrawlerList extends Command
 
         if(isset($type)){
             foreach($config_arr as $key=>$value){
-                //echo $type."\n";
-                //var_dump(addslashes($type) == addslashes($value['url']));
-                $type='http://tech.qq.com/';
+                //$type = 'http://news.cctv.com/society/data/index.json';
                 if($type == $value['url']){
                     $html = @file_get_contents($type);
                     if(!$html){
-                        echo '读取内容出错，抓取地址为:'.$type;
+                        echo '读取内容出错，抓取地址为:'.$type. "\n";
                     }
-                    $obj = $this->getSourceObj($value['strategy']);
+                    $obj = $this->getSourceObj($value);
 
                     $data = $obj->handelList($html);
                    // print_r($data);exit;
 
-
                     //插入数据库
-                    $this->insertArticle($data);
+                    if($data){
+                        $this->insertArticle($data);
+                    }else{
+                        echo '未抓取到内容'."\n";
+                    }
                     break;
                 }
 
@@ -80,17 +81,21 @@ class CrawlerList extends Command
             foreach($config_arr as $key=>$value){
                 $html = @file_get_contents($value['url']);
                 if(!$html){
-                    echo '读取内容出错，抓取地址为:'.$value['url'];
+                    echo '读取内容出错，抓取地址为:'.$value['url']. "\n";
                     continue;
                 }
                 //todo::test
-                $obj = $this->getSourceObj($value['strategy']);
+                $obj = $this->getSourceObj($value);
 
                 $data = $obj->handelList($html);
                 // print_r($data);exit;
 
                 //插入数据库
-                $this->insertArticle($data);
+                if($data){
+                    $this->insertArticle($data);
+                }else{
+                    echo '未抓取到内容'."\n";
+                }
             }
 
         }
@@ -111,16 +116,36 @@ class CrawlerList extends Command
             array(
                 'url'=>'http://people.Cctv.com/',
                 'strategy'=>'Cctv.people',
+                'source' => '央视网',
+                'channel' => '人物',
             ),
             //央视军事频道
             array(
                 'url'=>'http://military.Cctv.com/data/index.json',
                 'strategy'=>'Cctv.military',
+                'source' => '央视网',
+                'channel' => '军事',
+            ),
+            //央视军事频道
+            array(
+                'url'=>'http://news.cctv.com/data/index.json',
+                'strategy'=>'Cctv.news',
+                'source' => '央视网',
+                'channel' => '新闻',
+            ),
+            //央视社会频道
+            array(
+                'url'=>'http://news.cctv.com/society/data/index.json',
+                'strategy'=>'Cctv.news',
+                'source' => '央视网',
+                'channel' => '社会',
             ),
             //腾讯科技
             array(
                 'url'=>'http://tech.qq.com/',
                 'strategy'=>'QQ.tech',
+                'source' => '腾讯',
+                'channel' => '科技',
             ),
         );
         return $config_rules;
@@ -129,11 +154,12 @@ class CrawlerList extends Command
 
     /*
      *获得数据源处理对象
-     * params string $strategy  格式Cctv.people;
+     * params array $config 数据源配置数组
      * return obj;
      * */
-    public function getSourceObj($strategy)
+    public function getSourceObj($config)
     {
+        $strategy = $config['strategy'];
         if(!$strategy){
             echo "参数不合法"."\n";
             exit;
@@ -149,7 +175,7 @@ class CrawlerList extends Command
         }
 
         $obj = '\App\Libraries\\'.$dir_name.'\\'.$obj_name;
-        $obj = new $obj();
+        $obj = new $obj($config);
         return $obj;
     }
 
@@ -159,7 +185,7 @@ class CrawlerList extends Command
     public function insertArticle($data)
     {
         if(!is_array($data) || count($data) < 0){
-            echo '暂时未读取到数据！';
+            echo '暂时未读取到数据！'. "\n";
             exit;
         }
         //处理数据 入库
@@ -183,20 +209,5 @@ class CrawlerList extends Command
                 $this->articleContent->createData($content_data);
             }
         }
-    }
-
-
-
-    public function getSql ()
-    {
-        //只使用5.2版本以下laravel框架
-        \DB::listen(function ($sql, $bindings, $time) {
-            foreach ($bindings as $replace) {
-                $value = is_numeric($replace) ? $replace : "'" . $replace . "'";
-                $sql = preg_replace('/\?/', $value, $sql, 1);
-            }
-            $sql .= ';  耗时：' . $time;
-            dump($sql);
-        });
     }
 }

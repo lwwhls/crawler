@@ -4,7 +4,7 @@ namespace App\Libraries\Cctv;
 use QL\QueryList;
 use App\Libraries\CrawlerInterface;
 
-class MilitaryCrawler implements CrawlerInterface
+class NewsCrawler implements CrawlerInterface
 {
     public $rulers;
     public $config;
@@ -43,7 +43,7 @@ class MilitaryCrawler implements CrawlerInterface
     public function handelContent($html)
     {
         $content_rule =array(
-            'content'=>array('.cnt_bd','html','-h1 -h2 -.function'),
+            'content'=>array('.cnt_bd','html','-h1 -h2 -.function -.o-tit -script'),
         );
         $data = QueryList::Query($html, $content_rule)->getData(function($item){
             return $item['content'];

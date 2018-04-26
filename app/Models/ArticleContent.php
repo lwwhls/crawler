@@ -30,17 +30,18 @@ class ArticleContent extends Model
     /*
     * 修改创建文章内容
     */
-    public function updateData($data,$id)
+    public function updateData($data, $id)
     {
-        return $this->where('id',$id)->update($data);
+        return $this->where('id', $id)->update($data);
     }
 
     /*
      * 获取列表数据
      * */
-    public function getAll($conditions)
+    public function getAll($where)
     {
-        $result = $this->where($conditions)->get()->toArray();
+        $result = $this->where($where)
+            ->where('crawler_times', '<=', 5)->orderBy('id', 'desc')->get()->toArray();
         return $result;
     }
 }
